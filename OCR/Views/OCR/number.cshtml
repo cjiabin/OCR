@@ -1,0 +1,127 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>图像识别-Demo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+        $(function () {
+            var c = document.getElementById("myCanvas")
+            var ctx = c.getContext("2d");
+            ctx.fillStyle = "#FF0000";
+            ctx.lineWidth = 1;
+            var isStart = false;
+            $("#myCanvas").attr("width", $("[role=alert]").css("width"))
+            var clickCount = 0;
+            //按下鼠标
+            $(c).mousedown(function (e) {
+                var x = e.offsetX;
+                var y = e.offsetY;
+                ctx.moveTo(x, y);
+                isStart = true;
+            })
+            //松开鼠标
+            $(c).mouseup(function () {
+                isStart = false;
+            })
+            //鼠标移出
+            $(c).mouseout(function () {
+                isStart = false;
+            })
+            $(c).mousemove(function (e) {
+                if (isStart) {
+                    var x = e.offsetX;
+                    var y = e.offsetY;
+                    //画线
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    clickCount++;
+                }
+            })
+            //识别
+            $("#save").click(function () {
+                if (clickCount == 0) {
+                    alert("无效图像")
+                    return;
+                }
+                var img = document.getElementById("myCanvas").toDataURL("image/png");//将画布转为图片base64对象
+                $.ajax({
+                    type: "POST",
+                    url: "Result",
+                    dataType: "JSON",
+                    data: { imgbase: img, number: $("#numtxt").val() },
+                    success: function (data) {
+                        $("#info").html(data.info);
+                        $("#str").html(data.str)
+                        $("#tipsimg").show();
+                        $("#imgdiv").show();
+                        $("#numberimg").attr("src", data.numberimg);
+                    },
+                    error: function (a, b, c) {
+                        alert(a + b + c);
+                    }
+                })
+            })
+            //清空
+            $("#clear").click(function () {
+                window.location.reload();
+            })
+        });
+
+    </script>
+</head>
+<body>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="panel panel-info" style="width:50%;float:left;margin-left:25%">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> 手写数字图像识别</h3>
+                </div>
+                <div class="panel-body">
+                    <div style="width:50%;float:left;">
+                        <div class="alert alert-warning" role="alert">
+                            <strong>参照数字：</strong>  0 1 2 3 4 5 6 7 8 9
+                            <div style="font-size:12px;color:#ccc;"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>只支持单个手写个位数字识别</div>
+                            <div style="font-size:12px;color:#ccc;"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>笔画越接近上列参照数字字形识别成功率越高</div>
+                            <div style="font-size:12px;color:#ccc;"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>在识别区域内按下鼠标然后移动鼠标进行手写操作</div>
+                        </div>
+                        <div style="width:100%;">识别区域：
+                            <canvas id="myCanvas" height="280" style="border: 1px solid #000; cursor: crosshair; "></canvas>
+                        </div>
+                        <div style="margin-top:20px;">
+                            <button type="button" class="btn btn-primary" id="save">识 别</button> &nbsp;&nbsp;
+                            <button type="button" class="btn btn-default" id="clear">清 空</button>
+                        </div>
+                    </div>
+                    <div style="width:45%;float:right;">
+                        <span style="font-size:16px;font-weight:bold;">识别结果：</span><span id="info"></span>
+                        <span id="tipsimg" style="display:none;">识别图像 / 识别图像像素点分布：<br /></span>
+                        <div style=" float: left;display:none;border:1px solid #000;margin-right:40px;" id="imgdiv"><img id="numberimg" style="zoom:2;" /></div>
+                        <span id="str" style="float:left;"></span>
+                        <span style="width: 60%; float: right;">
+                            <span id="tips" style="font-size:1px;margin-left:0px; word-wrap:break-word;word-break:break-all;zoom:0.5"></span>
+                        </span>
+                    </div>
+
+
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+
+
+
+
+
+
+</body>
+</html>
